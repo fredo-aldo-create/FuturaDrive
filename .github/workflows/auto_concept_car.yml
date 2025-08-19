@@ -24,10 +24,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install openai
+
+
+- name: Install deps
+  run: |
+    python -m pip install --upgrade pip
+    pip install "openai>=1.51.0"
+
 
       - name: Generate concept car (images + article + index)
         run: |
