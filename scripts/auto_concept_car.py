@@ -29,7 +29,7 @@ TIMEZONE = "Europe/Paris"
 
 # OpenAI
 OPENAI_MODEL_IMAGE = "gpt-image-1"
-OPENAI_IMAGE_SIZE = "1792x1024"
+OPENAI_IMAGE_SIZE = "1536x1024"
 OPENAI_IMAGE_FORMAT = "b64_json"
 IMAGE_EXT = ".png"
 
@@ -140,12 +140,12 @@ def openai_client():
 def gen_image_b64(prompt: str) -> str:
     from openai import OpenAI
     client = OpenAI()
+    print(f"[i] Image size = {OPENAI_IMAGE_SIZE}")   
     res = client.images.generate(
         model="gpt-image-1",
         prompt=prompt,
         size=OPENAI_IMAGE_SIZE,
         n=1,
-        # pas de response_format pour le SDK 1.x
     )
     return res.data[0].b64_json
 
