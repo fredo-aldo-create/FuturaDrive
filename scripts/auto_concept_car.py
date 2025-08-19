@@ -101,30 +101,63 @@ def base_style(unique_hint: str) -> str:
         "sharp details, photographic rendering, subtle reflections. " + unique_hint
     )
 
-def prompt_front(kind: str, name: str) -> str:
+
+
+# ----- Couleurs & environnements -----
+CAR_COLORS = [
+    "metallic red", "pearl white", "deep midnight blue",
+    "emerald green metallic", "champagne gold", "graphite black matte",
+    "copper orange", "satin purple", "turquoise cyan",
+    "silver-blue metallic"
+]
+
+
+ENVIRONMENTS = [
+    "modern minimal urban setting in soft daylight",
+    "futuristic city skyline at dusk",
+    "coastal road at golden hour",
+    "mountain pass with snowy peaks in background",
+    "desert highway under bright sunlight",
+    "forest road with misty atmosphere",
+    "luxury villa driveway in sunny weather",
+    "industrial port with containers and cranes",
+    "night cityscape with neon reflections" 
+]
+
+def random_color():
+    return random.choice(CAR_COLORS)
+
+def random_env():
+    return random.choice(ENVIRONMENTS)
+
+ef prompt_front(kind: str, name: str, paint: str, backdrop: str) -> str:
     body = "low-slung hypercar proportions" if kind == "sport" else "long luxury sedan proportions"
     return (
         base_style("distinctive LED signature; unique front graphics.")
         + f"\nShot: dynamic front three-quarter view; Body: {body}; "
-          "Backdrop: modern minimal urban setting in soft daylight; "
-          "Paint: metallic silver-blue; Wheels: turbine-inspired; "
+          f"Backdrop: {backdrop}; "
+          f"Paint: {paint}; Wheels: turbine-inspired; "
           f"Vehicle name: {name}."
     )
 
-def prompt_rear(kind: str, name: str) -> str:
+def prompt_rear(kind: str, name: str, paint: str, backdrop: str) -> str:
     tail = "sculpted diffuser with continuous light bar" if kind == "sport" else "elegant clean trunk line with light bar"
     return (
         base_style("bespoke taillight contour; no logos.")
         + f"\nShot: low-angle rear three-quarter view; Tail: {tail}; "
-          "Backdrop: contemporary city; Soft diffused light; "
+          f"Backdrop: {backdrop}; "
+          f"Paint: {paint}; "
           f"Vehicle name: {name}."
     )
 
-def prompt_interior(kind: str, name: str) -> str:
-    mode = random.choice(["cockpit close-up from driver's seat",
-                          "interior seen from outside through the open driver door, left side"])
+def prompt_interior(kind: str, name: str, paint: str) -> str:
+    mode = random.choice([
+        "cockpit close-up from driver's seat",
+        "interior seen from outside through the open driver door, left side"
+    ])
     return (
-        "High-end luxury interior, vegan leather, basalt-fiber inlays, brushed metal, wide AR HUD, panoramic curved display, "
+        f"High-end luxury interior with subtle accents matching the exterior paint ({paint}), "
+        "vegan leather, basalt-fiber inlays, brushed metal, wide AR HUD, panoramic curved display, "
         f"{mode}, natural daylight, photo-real, no logos.\nVehicle name: {name}."
     )
 
