@@ -28,7 +28,7 @@
 
     .hero{position:relative}
     .hero .imgwrap{position:relative; border-radius:22px; overflow:hidden; border:1px solid rgba(148,163,184,.15); box-shadow:var(--shadow-lg)}
-    .hero img{width:100%; height:420px; object-fit:cover; display:block; background:#111}
+    .hero img{width:100%; height:420px; object-fit:cover; display:block; background:#111; cursor:pointer;}
     .hero .overlay{position:absolute; inset:0; background:linear-gradient(180deg, transparent 20%, rgba(2,6,23,.65) 75%, rgba(2,6,23,.9) 100%)}
     .hero .title{position:absolute; left:22px; bottom:20px; right:22px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px}
     h1{margin:0; font-size:clamp(24px,4.4vw,44px); letter-spacing:.2px}
@@ -44,7 +44,7 @@
     .muted{color:var(--muted)}
 
     .gallery{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:10px}
-    .gallery img{width:100%; height:180px; object-fit:cover; border-radius:14px; border:1px solid rgba(148,163,184,.15)}
+    .gallery img{width:100%; height:180px; object-fit:cover; border-radius:14px; border:1px solid rgba(148,163,184,.15); cursor:pointer;}
 
     .kpi{display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid rgba(148,163,184,.12); border-radius:14px; background:rgba(2,6,23,.35)}
     .kpi strong{font-size:18px}
@@ -61,6 +61,24 @@
       body{ background:#fff !important; color:#111 !important; }
       .card{ background:#fff !important; border:1px solid #ddd !important; }
     }
+
+    /* === Lightbox === */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.6);
+    }
+    .lightbox.active { display: flex; }
   </style>
 </head>
 <body>
@@ -79,7 +97,7 @@
   <main class="wrap">
     <section class="hero">
       <div class="imgwrap">
-        <img src="/images/2025-08-19-Hydra-One-01.jpg" alt="Aelys Motors Hydra One — vue avant" />
+        <img src="/images/2025-08-19-Hydra-One-01.jpg" alt="Aelys Motors Hydra One — vue avant" class="zoomable" />
         <div class="overlay"></div>
         <div class="title">
           <h1>Hydra One</h1>
@@ -137,7 +155,7 @@
           <div class="card">
             <h3>Assistances & Gadgets</h3>
             <ul class="list">
-              <li>Pilotage semi‑autonome (L3) avec mode « Track Coach »</li>
+              <li>Pilotage semi-autonome (L3) avec mode « Track Coach »</li>
               <li>Caméras 360°, vision nocturne, enregistreur 4K</li>
               <li>Clé smartphone + reconnaissance faciale</li>
               <li>Mises à jour OTA</li>
@@ -147,8 +165,8 @@
 
         <h3 style="margin-top:18px">Galerie</h3>
         <div class="gallery">
-          <img src="/images/2025-08-19-Hydra-One-02.jpg" alt="Hydra One — vue arrière" />
-          <img src="/images/2025-08-19-Hydra-One-03.jpg" alt="Hydra One — cockpit" />
+          <img src="/images/2025-08-19-Hydra-One-02.jpg" alt="Hydra One — vue arrière" class="zoomable" />
+          <img src="/images/2025-08-19-Hydra-One-03.jpg" alt="Hydra One — cockpit" class="zoomable" />
         </div>
       </article>
 
@@ -184,6 +202,11 @@
     </section>
   </main>
 
+  <!-- Lightbox container -->
+  <div class="lightbox" id="lightbox">
+    <img src="" alt="Aperçu" id="lightbox-img">
+  </div>
+
   <script>
     document.getElementById('printBtn')?.addEventListener('click', () => window.print());
     document.getElementById('copyBtn')?.addEventListener('click', async () => {
@@ -215,43 +238,20 @@
         alert("Impossible de copier automatiquement.");
       }
     });
-  </script>
 
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Vehicle",
-    "brand": {"@type":"Brand","name":"Aelys Motors"},
-    "model": "Hydra One",
-    "vehicleConfiguration": "Pile à combustible H2 + batterie tampon, AWD",
-    "vehicleSeatingCapacity": 2,
-    "name": "Aelys Motors Hydra One",
-    "description": "Supercar hydrogène : 0–100 km/h 2,9 s, 325 km/h, 700 km d’autonomie. Intérieur luxe, AR HUD, audio 3D Harmonia.",
-    "fuelType": "Hydrogen",
-    "driveWheelConfiguration": "AllWheelDriveConfiguration",
-    "url": "https://exemple.com/hydra-one",
-    "image": [
-      "images/hydra-one-front.jpg",
-      "images/hydra-one-rear.jpg",
-      "images/hydra-one-cockpit.jpg"
-    ],
-    "weightTotal": "1600 kg",
-    "vehicleEngine": {
-      "@type":"EngineSpecification",
-      "name":"Pile à combustible + batterie",
-      "engineType":"FuelCell",
-      "power": "800 hp"
-    },
-    "performance": {
-      "@type":"Thing",
-      "name":"Performances",
-      "additionalProperty":[
-        {"@type":"PropertyValue","name":"0–100 km/h","value":"2.9 s"},
-        {"@type":"PropertyValue","name":"Vitesse max","value":"325 km/h"},
-        {"@type":"PropertyValue","name":"Autonomie","value":"700 km"}
-      ]
-    }
-  }
+    // Lightbox JS
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    document.querySelectorAll('.zoomable').forEach(img => {
+      img.addEventListener('click', () => {
+        lightboxImg.src = img.src;
+        lightbox.classList.add('active');
+      });
+    });
+    lightbox.addEventListener('click', () => {
+      lightbox.classList.remove('active');
+      lightboxImg.src = "";
+    });
   </script>
 </body>
 </html>
