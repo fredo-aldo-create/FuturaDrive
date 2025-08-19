@@ -101,6 +101,13 @@ def base_style(unique_hint: str) -> str:
         "sharp details, photographic rendering, subtle reflections. " + unique_hint
     )
 
+PROPULSIONS = [
+    {"tag": "Hydrogène", "desc": "pile à combustible hydrogène + batterie tampon haute puissance", "emoji": "⚡"},
+    {"tag": "Électrique", "desc": "100% électrique avec batterie solide de nouvelle génération", "emoji": "🔋"},
+    {"tag": "Hybride futuriste", "desc": "hybride rechargeable à microturbine génératrice", "emoji": "🌍"}
+]
+
+propulsion = random.choice(PROPULSIONS)
 
 
 # ----- Couleurs & environnements -----
@@ -191,7 +198,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ MODEL }} — Concept Car</title>
-  <meta name="description" content="{{ MODEL }} : concept à pile à combustible hydrogène. 0–100 km/h {{ ZERO100 }} s, Vmax {{ VMAX }} km/h, {{ AUTONOMY }} km d’autonomie." />
+  <meta name="description" content="{{ MODEL }} : concept {{ PROP_TAG }}. 0–100 km/h {{ ZERO100 }} s, Vmax {{ VMAX }} km/h, {{ AUTONOMY }} km d’autonomie." />
   <style>
     :root{ --bg:#0f172a; --card:#0b1223; --text:#e5e7eb; --muted:#94a3b8; --accent:#22d3ee; --accent-2:#a78bfa; --ring:#38bdf8; --radius:18px; --shadow-lg:0 20px 40px rgba(0,0,0,.35); }
     *{box-sizing:border-box} html,body{height:100%}
@@ -249,7 +256,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
         <div class="overlay"></div>
         <div class="title">
           <h1>{{ MODEL }}</h1>
-          <span class="badge">⚡ Pile à combustible H<sub>2</sub></span>
+          <span class="badge">{{ PROP_EMOJI }} {{ PROP_TAG }}</span>
           <span class="badge">🔋 {{ AUTONOMY }} km</span>
         </div>
       </div>
@@ -258,7 +265,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
     <section class="content">
       <article class="card">
         <h2>Aperçu</h2>
-        <p><strong>{{ MODEL }}</strong> est une {{ KIND_FR }} à hydrogène. Elle associe pile à combustible et batterie tampon haute puissance pour des accélérations élevées, tout en ne rejetant que de la vapeur d’eau.</p>
+        <p><strong>{{ MODEL }}</strong> est une {{ KIND_FR }} à motorisation <strong>{{ PROP_TAG }}</strong>. Elle associe une architecture <em>{{ PROP_DESC }}</em> pour offrir des performances de premier plan.</p>
 
         <h3 style="margin-top:18px">Performances clés</h3>
         <div class="specs">
@@ -270,13 +277,12 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
 
         <div class="grid" style="margin-top:16px">
           <div class="card">
-            <h3>Groupe motopropulseur</h3>
+            <h3>Chaîne de traction</h3>
             <ul class="list">
-              <li>Pile à combustible H<sub>2</sub> ~150 kW continus</li>
-              <li>Batterie tampon Li-ion haute puissance</li>
-              <li>Deux moteurs électriques (AWD, vectorisation de couple)</li>
-              <li>Réservoirs H<sub>2</sub> 700 bar</li>
-              <li>Ravitaillement H<sub>2</sub> ~3 min</li>
+              <li>Architecture : {{ PROP_DESC }}</li>
+              <li>Transmission : intégrale (AWD) avec vectorisation de couple</li>
+              <li>Gestion énergétique intelligente (modes éco/sport)</li>
+              <li>Récupération d’énergie au freinage</li>
             </ul>
           </div>
           <div class="card">
@@ -285,7 +291,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
               <li>Monocoque carbone-aluminium</li>
               <li>Suspension pilotée</li>
               <li>Aérodynamique active</li>
-              <li>Freins carbo-céramique</li>
+              <li>Freins haute performance</li>
             </ul>
           </div>
           <div class="card">
@@ -302,7 +308,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
             <ul class="list">
               <li>Aides L3, caméras 360°, vision nocturne</li>
               <li>DVR 4K, clé smartphone, reconnaissance faciale</li>
-              <li>OTA</li>
+              <li>Mises à jour OTA</li>
             </ul>
           </div>
         </div>
@@ -321,8 +327,8 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
         <div class="kpi" aria-label="Transmission">
           <div>⚙️</div><div><div class="muted">Transmission</div><strong>Intégrale (AWD)</strong></div>
         </div>
-        <div class="kpi" aria-label="Émissions">
-          <div>💨</div><div><div class="muted">Émissions</div><strong>Vapeur d’eau uniquement</strong></div>
+        <div class="kpi" aria-label="Motorisation">
+          <div>🔧</div><div><div class="muted">Propulsion</div><strong>{{ PROP_TAG }}</strong></div>
         </div>
         <div class="card">
           <h3>Dimensions (estim.)</h3>
@@ -370,6 +376,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
 </html>
 """
 
+
 def render(tpl: str, ctx: dict) -> str:
     out = tpl
     for k, v in ctx.items():
@@ -382,17 +389,17 @@ FR_MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août",
 def format_date_fr(dt: datetime) -> str:
     return f"{dt.day} {FR_MONTHS[dt.month-1]} {dt.year}"
 
-def make_card_block(article_rel: str, img_rel: str, title: str, meta_tag: str, dt: datetime) -> str:
+def make_card_block(article_rel: str, img_rel: str, title: str, meta_tag: str, dt: datetime, prop_tag: str, prop_emoji: str) -> str:
     date_str = format_date_fr(dt)
     return f"""
       <article class="card">
         <a class="thumb" href="{article_rel}" aria-label="Lire : {title}">
           <img src="{img_rel}" alt="{title}">
-          <span class="badge">Hydrogène</span>
+          <span class="badge">{prop_emoji} {prop_tag}</span>
         </a>
         <div class="card-body">
           <h2 class="title">{title}</h2>
-          <p class="excerpt">Concept à pile à combustible : 0–100 en quelques secondes, autonomie longue, design unique.</p>
+          <p class="excerpt">Concept {prop_tag.lower()} : 0–100 en quelques secondes, autonomie longue, design unique.</p>
           <div class="meta">
             <span>{date_str}</span><span>•</span><span>{meta_tag}</span>
           </div>
@@ -400,7 +407,6 @@ def make_card_block(article_rel: str, img_rel: str, title: str, meta_tag: str, d
         </div>
       </article>
     """.rstrip()
-
 def insert_card_into_index(index_path: Path, card_html: str):
     html = index_path.read_text(encoding="utf-8")
     start = html.find("<!-- FEED:start -->")
@@ -435,6 +441,7 @@ def main():
     article = ARTICLES_DIR / f"{date_prefix}-{slug}.html"
 
     specs = random_specs(car_type)
+    propulsion = random.choice(PROPULSIONS)
 
     # Prompts & images (une seule couleur + un seul décor pour les 3 vues)
     paint = random.choice(CAR_COLORS)
@@ -468,18 +475,23 @@ def main():
         "IMG01": f"/images/{img01.name}",
         "IMG02": f"/images/{img02.name}",
         "IMG03": f"/images/{img03.name}",
+        "PROP_TAG": propulsion["tag"],
+        "PROP_DESC": propulsion["desc"],
+        "PROP_EMOJI": propulsion["emoji"],
     }
     html = render(tpl, ctx)
     article.write_text(html, encoding="utf-8")
 
     # Carte pour index.html
     card = make_card_block(
-        article_rel=f"/articles/{article.name}",
-        img_rel=f"/images/{img01.name}",
-        title=f"{model_name} — Concept Car",
-        meta_tag=specs["tag"],
-        dt=now
-    )
+    article_rel=f"/articles/{article.name}",
+    img_rel=f"/images/{img01.name}",
+    title=f"{model_name} — Concept Car",
+    meta_tag=specs["tag"],
+    dt=now,
+    prop_tag=propulsion["tag"],
+    prop_emoji=propulsion["emoji"]
+)
     if INDEX_FILE.exists():
         insert_card_into_index(INDEX_FILE, card)
     else:
