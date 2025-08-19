@@ -138,20 +138,28 @@ def openai_client():
         return openai
 
 def gen_image_b64(prompt: str) -> str:
-    client = openai_client()
-    if hasattr(client, "images"):  # SDK >=1.0
+    try:
+        # SDK >= 1.x
+        from openai import OpenAI
+        client = OpenAI()
         res = client.images.generate(
-            model=OPENAI_MODEL_IMAGE,
+            model="gpt-image-1",
             prompt=prompt,
-            size=OPENAI_IMAGE_SIZE,
+            size="1792x1024",
             n=1,
-            response_format=OPENAI_IMAGE_FORMAT,
         )
         return res.data[0].b64_json
-    # fallback anciens SDK
-    import openai as old
-    resp = old.Image.create(prompt=prompt, n=1, size=OPENAI_IMAGE_SIZE, response_format="b64_json")
-    return resp["data"][0]["b64_json"]
+    except Exception:
+        # Ancien SDK 0.x
+        import openai as old
+        resp = old.Image.create(
+            prompt=prompt,
+            n=1,
+            size="1792x1024",
+            response_format="b64_json"
+        )
+        return resp["data"][0]["b64_json"]
+
 
 # ----- HTML template (intégré, lightbox incluse) -----
 DEFAULT_TEMPLATE = """<!DOCTYPE html>
