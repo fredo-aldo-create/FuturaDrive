@@ -31,7 +31,7 @@ TIMEZONE = "Europe/Paris"
 OPENAI_MODEL_IMAGE = "gpt-image-1"
 OPENAI_IMAGE_SIZE = "1792x1024"
 OPENAI_IMAGE_FORMAT = "b64_json"
-IMAGE_EXT = ".jpg"
+IMAGE_EXT = ".png"
 
 # ----- Timezone -----
 try:
@@ -138,27 +138,17 @@ def openai_client():
         return openai
 
 def gen_image_b64(prompt: str) -> str:
-    try:
-        # SDK >= 1.x
-        from openai import OpenAI
-        client = OpenAI()
-        res = client.images.generate(
-            model="gpt-image-1",
-            prompt=prompt,
-            size="1792x1024",
-            n=1,
-        )
-        return res.data[0].b64_json
-    except Exception:
-        # Ancien SDK 0.x
-        import openai as old
-        resp = old.Image.create(
-            prompt=prompt,
-            n=1,
-            size="1792x1024",
-            response_format="b64_json"
-        )
-        return resp["data"][0]["b64_json"]
+    from openai import OpenAI
+    client = OpenAI()
+    res = client.images.generate(
+        model="gpt-image-1",
+        prompt=prompt,
+        size=OPENAI_IMAGE_SIZE,
+        n=1,
+        # pas de response_format pour le SDK 1.x
+    )
+    return res.data[0].b64_json
+
 
 
 # ----- HTML template (intégré, lightbox incluse) -----
