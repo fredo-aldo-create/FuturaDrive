@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hydra One — Concept Car</title>
+  <meta name="description" content="Hydra One par Aelys Motors : supercar à pile à combustible hydrogène. 0–100 km/h en 2,9 s, 325 km/h, 700 km d’autonomie. Intérieur luxe et technologies avancées." />
+  <style>
+    :root{
+      --bg:#0f172a; --card:#0b1223; --text:#e5e7eb; --muted:#94a3b8;
+      --accent:#22d3ee; --accent-2:#a78bfa; --ring:#38bdf8; --radius:18px;
+      --shadow-lg:0 20px 40px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif; color:var(--text); background:linear-gradient(135deg,#0b1223, var(--bg));}
+    a{color:var(--accent)}
+    header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(160%) blur(10px);
+      background:linear-gradient(180deg, rgba(2,6,23,.78), rgba(2,6,23,.35)); border-bottom:1px solid rgba(148,163,184,.15)}
+    .wrap{max-width:1100px; margin-inline:auto; padding:16px 20px}
+    .row{display:flex; align-items:center; gap:10px; justify-content:space-between}
+    .breadcrumb{display:flex; align-items:center; gap:8px; color:var(--muted); text-decoration:none}
+    .breadcrumb:hover{color:var(--text)}
+    .actions{display:flex; gap:8px}
+    .btn{appearance:none; border:1px solid rgba(148,163,184,.18); color:var(--text); background:linear-gradient(180deg,#0b1223,#0f172a); padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:500}
+    .btn:hover{border-color:rgba(56,189,248,.45)}
+    .btn:focus-visible{outline:none; box-shadow:0 0 0 3px var(--ring)}
+
+    .hero{position:relative}
+    .hero .imgwrap{position:relative; border-radius:22px; overflow:hidden; border:1px solid rgba(148,163,184,.15); box-shadow:var(--shadow-lg)}
+    .hero img{width:100%; height:420px; object-fit:cover; display:block; background:#111}
+    .hero .overlay{position:absolute; inset:0; background:linear-gradient(180deg, transparent 20%, rgba(2,6,23,.65) 75%, rgba(2,6,23,.9) 100%)}
+    .hero .title{position:absolute; left:22px; bottom:20px; right:22px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px}
+    h1{margin:0; font-size:clamp(24px,4.4vw,44px); letter-spacing:.2px}
+    .badge{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:rgba(34,211,238,.15); border:1px solid rgba(56,189,248,.45); font-weight:600; color:#e0fbff}
+
+    .content{display:grid; grid-template-columns: 1.2fr .8fr; gap:22px; margin-top:24px}
+    @media (max-width: 980px){ .content{grid-template-columns: 1fr} }
+
+    .card{background:linear-gradient(135deg,#0b1223,var(--card)); border:1px solid rgba(148,163,184,.15); border-radius:var(--radius); padding:18px}
+    .grid{display:grid; gap:12px}
+    .specs{display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px}
+    .spec{display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border:1px solid rgba(148,163,184,.12); border-radius:14px; background:rgba(2,6,23,.35)}
+    .muted{color:var(--muted)}
+
+    .gallery{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:10px}
+    .gallery img{width:100%; height:180px; object-fit:cover; border-radius:14px; border:1px solid rgba(148,163,184,.15)}
+
+    .kpi{display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid rgba(148,163,184,.12); border-radius:14px; background:rgba(2,6,23,.35)}
+    .kpi strong{font-size:18px}
+
+    .list{margin:0; padding-left:18px}
+    .list li{margin:6px 0}
+
+    @media print{
+      *{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .actions{ display:none !important; }
+      header, aside{ position: static !important; }
+      .hero .imgwrap{ box-shadow: none !important; }
+      .hero .overlay{ display:none !important; }
+      body{ background:#fff !important; color:#111 !important; }
+      .card{ background:#fff !important; border:1px solid #ddd !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="row">
+        <a class="breadcrumb" href="/index.html" aria-label="Retour à l'accueil">← Accueil</a>
+        <div class="actions">
+          <button class="btn" id="copyBtn" title="Copier la fiche">Copier</button>
+          <button class="btn" id="printBtn" title="Imprimer">Imprimer</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="imgwrap">
+        <img src="images/hydra-one-front.jpg" alt="Aelys Motors Hydra One — vue avant" />
+        <div class="overlay"></div>
+        <div class="title">
+          <h1>Hydra One</h1>
+          <span class="badge" aria-label="Motorisation">⚡ Pile à combustible H<sub>2</sub></span>
+          <span class="badge" aria-label="Autonomie">🔋 700 km</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <article class="card">
+        <h2>Aperçu</h2>
+        <p><strong>Hydra One</strong> est une supercar à hydrogène signée <strong>Aelys Motors</strong>. Elle combine une pile à combustible de nouvelle génération avec une batterie tampon haut-débit pour livrer des accélérations explosives tout en ne rejetant que de la vapeur d’eau.</p>
+
+        <h3 style="margin-top:18px">Performances clés</h3>
+        <div class="specs">
+          <div class="spec"><span class="muted">0–100 km/h</span><strong>2,9 s</strong></div>
+          <div class="spec"><span class="muted">Vitesse max</span><strong>325 km/h</strong></div>
+          <div class="spec"><span class="muted">Puissance système</span><strong>~800 ch (est.)</strong></div>
+          <div class="spec"><span class="muted">Autonomie (WLTP est.)</span><strong>700 km</strong></div>
+        </div>
+
+        <div class="grid" style="margin-top:16px">
+          <div class="card">
+            <h3>Groupe motopropulseur</h3>
+            <ul class="list">
+              <li>Pile à combustible hydrogène 2e génération, 150 kW continus</li>
+              <li>Batterie tampon Li-ion haute puissance (décharges brèves jusqu’à 500 kW)</li>
+              <li>Deux moteurs électriques (AWD vectorisation de couple)</li>
+              <li>Réservoirs H<sub>2</sub> 700 bar composite</li>
+              <li>Recharge H<sub>2</sub> ~3 min (station 700 bar compatible)</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Châssis & Aéro</h3>
+            <ul class="list">
+              <li>Monocoque carbone-aluminium</li>
+              <li>Suspension pilotée, modes Confort / Sport / Track</li>
+              <li>Aérodynamique active : lame avant et spoiler adaptatifs</li>
+              <li>Freins carbo-céramique, jantes 21”</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Intérieur & Finitions</h3>
+            <ul class="list">
+              <li>Cuir végétal premium, inserts en fibre de basalte</li>
+              <li>Affichage tête haute holographique + combiné large 12,9”</li>
+              <li>Système audio 3D <em>Harmonia</em></li>
+              <li>Assistant IA prédictif, navigation AR</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Assistances & Gadgets</h3>
+            <ul class="list">
+              <li>Pilotage semi‑autonome (L3) avec mode « Track Coach »</li>
+              <li>Caméras 360°, vision nocturne, enregistreur 4K</li>
+              <li>Clé smartphone + reconnaissance faciale</li>
+              <li>Mises à jour OTA</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 style="margin-top:18px">Galerie</h3>
+        <div class="gallery">
+          <img src="images/hydra-one-rear.jpg" alt="Hydra One — vue arrière" />
+          <img src="images/hydra-one-cockpit.jpg" alt="Hydra One — cockpit" />
+        </div>
+      </article>
+
+      <aside>
+        <div class="kpi" aria-label="Marque">
+          <div>🏷️</div><div><div class="muted">Marque</div><strong>Aelys Motors</strong></div>
+        </div>
+        <div class="kpi" aria-label="Transmission">
+          <div>⚙️</div><div><div class="muted">Transmission</div><strong>Intégrale (AWD)</strong></div>
+        </div>
+        <div class="kpi" aria-label="Émissions">
+          <div>💨</div><div><div class="muted">Émissions</div><strong>Vapeur d’eau uniquement</strong></div>
+        </div>
+        <div class="card">
+          <h3>Dimensions (estim.)</h3>
+          <ul class="list">
+            <li>Longueur : 4,60 m</li>
+            <li>Largeur : 1,95 m</li>
+            <li>Hauteur : 1,23 m</li>
+            <li>Empattement : 2,70 m</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Points forts</h3>
+          <ul class="list">
+            <li>Accélération foudroyante sans émissions</li>
+            <li>Design aérodynamique et matériaux durables</li>
+            <li>Technologies immersives (AR, IA, audio 3D)</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('printBtn')?.addEventListener('click', () => window.print());
+    document.getElementById('copyBtn')?.addEventListener('click', async () => {
+      const header = document.querySelector('header')?.cloneNode(true);
+      const main = document.querySelector('main')?.cloneNode(true);
+      header?.querySelector('.actions')?.remove();
+      main?.querySelectorAll('.overlay').forEach(el => el.remove());
+      const docFrag = `<article>${header ? header.outerHTML : ''}${main ? main.outerHTML : ''}</article>`.trim();
+      const plain = (() => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = docFrag;
+        tmp.querySelectorAll('script, style, noscript').forEach(el => el.remove());
+        return tmp.innerText.replace(/\n{3,}/g, '\n\n').trim();
+      })();
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          const item = new ClipboardItem({
+            'text/html': new Blob([docFrag], { type: 'text/html' }),
+            'text/plain': new Blob([plain], { type: 'text/plain' })
+          });
+          await navigator.clipboard.write([item]);
+        } else {
+          await navigator.clipboard.writeText(plain);
+        }
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = 'Copié !';
+        setTimeout(()=> btn.textContent = 'Copier', 1200);
+      } catch (err){
+        alert("Impossible de copier automatiquement.");
+      }
+    });
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Vehicle",
+    "brand": {"@type":"Brand","name":"Aelys Motors"},
+    "model": "Hydra One",
+    "vehicleConfiguration": "Pile à combustible H2 + batterie tampon, AWD",
+    "vehicleSeatingCapacity": 2,
+    "name": "Aelys Motors Hydra One",
+    "description": "Supercar hydrogène : 0–100 km/h 2,9 s, 325 km/h, 700 km d’autonomie. Intérieur luxe, AR HUD, audio 3D Harmonia.",
+    "fuelType": "Hydrogen",
+    "driveWheelConfiguration": "AllWheelDriveConfiguration",
+    "url": "https://exemple.com/hydra-one",
+    "image": [
+      "images/hydra-one-front.jpg",
+      "images/hydra-one-rear.jpg",
+      "images/hydra-one-cockpit.jpg"
+    ],
+    "weightTotal": "1600 kg",
+    "vehicleEngine": {
+      "@type":"EngineSpecification",
+      "name":"Pile à combustible + batterie",
+      "engineType":"FuelCell",
+      "power": "800 hp"
+    },
+    "performance": {
+      "@type":"Thing",
+      "name":"Performances",
+      "additionalProperty":[
+        {"@type":"PropertyValue","name":"0–100 km/h","value":"2.9 s"},
+        {"@type":"PropertyValue","name":"Vitesse max","value":"325 km/h"},
+        {"@type":"PropertyValue","name":"Autonomie","value":"700 km"}
+      ]
+    }
+  }
+  </script>
+</body>
+</html>
