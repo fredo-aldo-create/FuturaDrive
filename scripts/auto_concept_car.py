@@ -374,10 +374,12 @@ def insert_card_into_index(index_path: Path, card_html: str):
     end = html.find("<!-- FEED:end -->")
     if start == -1 or end == -1 or end < start:
         raise RuntimeError("Marqueurs FEED introuvables dans index.html")
-    insertion_point = end
-    # On insère la carte juste AVANT FEED:end (en tête de flux)
-    new_html = html[:insertion_point] + card_html + "\n      " + html[insertion_point:]
+    
+    # on met la nouvelle carte juste après <!-- FEED:start -->
+    insertion_point = start + len("<!-- FEED:start -->")
+    new_html = html[:insertion_point] + "\n      " + card_html + html[insertion_point:]
     index_path.write_text(new_html, encoding="utf-8")
+
 
 # ----- Main -----
 def main():
