@@ -436,10 +436,13 @@ def main():
 
     specs = random_specs(car_type)
 
-    # Prompts & images
-    p1 = prompt_front(car_type, model_name)
-    p2 = prompt_rear(car_type, model_name)
-    p3 = prompt_interior(car_type, model_name)
+    # Prompts & images (une seule couleur + un seul décor pour les 3 vues)
+    paint = random.choice(CAR_COLORS)
+    backdrop = random.choice(ENVIRONMENTS)
+    
+    p1 = prompt_front(car_type, model_name, paint, backdrop)
+    p2 = prompt_rear(car_type, model_name, paint, backdrop)
+    p3 = prompt_interior(car_type, model_name, paint)
 
     b64_1 = gen_image_b64(p1)
     save_b64(img01, b64_1)
