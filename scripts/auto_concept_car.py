@@ -130,7 +130,7 @@ def random_color():
 def random_env():
     return random.choice(ENVIRONMENTS)
 
-ef prompt_front(kind: str, name: str, paint: str, backdrop: str) -> str:
+def prompt_front(kind: str, name: str, paint: str, backdrop: str) -> str:
     body = "low-slung hypercar proportions" if kind == "sport" else "long luxury sedan proportions"
     return (
         base_style("distinctive LED signature; unique front graphics.")
