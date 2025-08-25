@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-Auto Concept Car Generator (GitHub Actions friendly) — FUTURE MODE
+Auto Concept Car Generator (GitHub Actions friendly) — FUTURE MODE + COHÉRENCE MULTI-VUES
 
 - Jour pair => supercar ; Jour impair => berline de luxe (date Europe/Paris)
 - Mode FUTURE (export FUTURE_MODE=1) : design 2045+, specs poussées, prompts SF
+- Cohérence: un DESIGN_TOKEN est injecté dans les trois prompts, avec une "coherence clause"
+  qui impose mêmes proportions, panels, jantes, peinture, décor, lumière.
 - Génère 3 images via OpenAI Images API:
   01: avant 3/4 ; 02: arrière 3/4 ; 03: intérieur (cockpit / côté conducteur)
 - Nomme les images: AAAA-MM-JJ-<slug>-01.png (02/03 idem) -> /images
@@ -14,7 +16,7 @@ Auto Concept Car Generator (GitHub Actions friendly) — FUTURE MODE
   avec image 01, lien article, titre et méta (date, tag)
 """
 
-import os, re, json, random, base64
+import os, re, json, random, base64, uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -30,7 +32,7 @@ TIMEZONE = "Europe/Paris"
 
 # OpenAI
 OPENAI_MODEL_IMAGE = "gpt-image-1"
-OPENAI_IMAGE_SIZE = "1536x1024"  # plus défini, format 3:2
+OPENAI_IMAGE_SIZE = "2048x1365"  # plus défini, format 3:2
 OPENAI_IMAGE_FORMAT = "b64_json"
 IMAGE_EXT = ".png"
 
@@ -98,6 +100,22 @@ def random_specs(car_type: str) -> dict:
     return dict(zero100=zero100, vmax=vmax, power_hp=power_hp, autonomy=autonomy,
                 seats=seats, tag=tag, dims=dims)
 
+# ----- Cohérence multi-vues -----
+def make_design_token() -> str:
+    return f"Design VX-{uuid.uuid4().hex[:6].upper()}"
+
+def coherence_clause(token: str, name: str, paint: str, backdrop: str) -> str:
+    """
+    Clause injectée dans chaque prompt pour la cohérence stricte.
+    """
+    return (
+        f"This is the exact same unique vehicle identified as '{token}' (codename {name}). "
+        f"Keep IDENTICAL proportions, panel lines, DRL/taillight signatures, wheel design, "
+        f"and exterior paint ({paint}). Use the EXACT SAME environment: {backdrop}. "
+        "Maintain the SAME time of day, camera colorimetry and lighting direction. "
+        "Do NOT alter body surfacing, trim details or wheel geometry. No logos, no text."
+    )
+
 # ----- Prompts images (anti-lookalike & futur) -----
 def unique_future_hint():
     hints = [
@@ -163,28 +181,27 @@ def random_color():
 def random_env():
     return random.choice(ENVIRONMENTS)
 
-def prompt_front(kind: str, name: str, paint: str, backdrop: str) -> str:
+def prompt_front(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
     body = "low, wide hypercar stance with cab-forward proportions" if kind == "sport" else "long fastback luxury sedan with one-bow profile"
     hint = random.choice(FUTURE_FEATURES_EXT) if FUTURE_MODE else "distinctive LED signature; unique front graphics"
     return (
         base_style(f"distinctive LED DRL geometry; {hint}.")
-        + f"\nShot: dynamic front three-quarter; Body: {body}; "
-          f"Backdrop: {backdrop}; "
-          f"Paint: {paint}; Wheels: {'hubless aero turbofan' if FUTURE_MODE else 'turbine-inspired'}; "
+        + "\n" + coherence_clause(token, name, paint, backdrop)
+        + f"\nShot: dynamic FRONT three-quarter view; Body: {body}; "
+          f"Backdrop: {backdrop}; Paint: {paint}; Wheels: {'hubless aero turbofan' if FUTURE_MODE else 'turbine-inspired'}; "
           f"Vehicle codename: {name}."
     )
 
-def prompt_rear(kind: str, name: str, paint: str, backdrop: str) -> str:
+def prompt_rear(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
     tail = "floating diffuser with continuous light blade and kinetic aero fins" if kind == "sport" else "clean boat-tail with seamless light ribbon and deployable aero"
     return (
         base_style("bespoke taillight blade integrated flush into the body; kinetic aero.")
-        + f"\nShot: low-angle rear three-quarter; Tail: {tail}; "
-          f"Backdrop: {backdrop}; "
-          f"Paint: {paint}; "
-          f"Vehicle codename: {name}."
+        + "\n" + coherence_clause(token, name, paint, backdrop)
+        + f"\nShot: low-angle REAR three-quarter view; Tail: {tail}; "
+          f"Backdrop: {backdrop}; Paint: {paint}; Vehicle codename: {name}."
     )
 
-def prompt_interior(kind: str, name: str, paint: str) -> str:
+def prompt_interior(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
     mode = random.choice([
         "cockpit close-up from driver's seat",
         "interior seen from outside through open canopy, left side"
@@ -192,15 +209,19 @@ def prompt_interior(kind: str, name: str, paint: str) -> str:
         "cockpit close-up from driver's seat",
         "interior seen from outside through the open driver door, left side"
     ])
+    interior_core = (
+        "Zero-clutter interior with electrochromic glass canopy, vegan performance textiles, "
+        "basalt-fiber inlays, floating center spine, full-width AR HUD with spatial UI, "
+        "haptic yoke, seamless OLED instrument ribbon; "
+    ) if FUTURE_MODE else (
+        "High-end luxury interior with subtle accents matching the exterior paint, "
+        "vegan leather, basalt-fiber inlays, brushed metal, wide AR HUD, panoramic curved display, "
+    )
     return (
-        ("Zero-clutter interior with electrochromic glass canopy, vegan performance textiles, "
-         "basalt-fiber inlays, floating center spine, full-width AR HUD with spatial UI, "
-         "haptic yoke, seamless OLED instrument ribbon; ")
-        if FUTURE_MODE else
-        ("High-end luxury interior with subtle accents matching the exterior paint, "
-         "vegan leather, basalt-fiber inlays, brushed metal, wide AR HUD, panoramic curved display, ")
-    ) + (
-        f"{mode}, natural daylight, photo-real, {paint} accents, no logos.\nVehicle codename: {name}."
+        interior_core
+        + coherence_clause(token, name, paint, backdrop)
+        + f"\nKeep interior color accents matched to exterior paint ({paint}); same lighting mood as exterior. "
+          f"{mode}, natural daylight, photo-real, no logos.\nVehicle codename: {name}."
     )
 
 # ----- OpenAI images -----
@@ -308,7 +329,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
           <div class="spec"><span class="muted">Autonomie (est.)</span><strong>{{ AUTONOMY }} km</strong></div>
         </div>
 
-        <div class="grid" style="margin-top:16px">
+        <div class="grid" style="margin-top:16px)">
           <div class="card">
             <h3>Chaîne de traction</h3>
             <ul class="list">
@@ -481,17 +502,19 @@ def main():
     img03 = IMAGES_DIR / f"{date_prefix}-{slug}-03{IMAGE_EXT}"
     article = ARTICLES_DIR / f"{date_prefix}-{slug}.html"
 
+    # Props communes à TOUTES les images (cohérence)
     specs = random_specs(car_type)
     propulsion = random.choice(PROPULSIONS)
-
-    # Prompts & images (une seule couleur + un seul décor pour les 3 vues)
     paint = random.choice(CAR_COLORS)
     backdrop = random.choice(ENVIRONMENTS)
+    design_token = make_design_token()
 
-    p1 = prompt_front(car_type, model_name, paint, backdrop)
-    p2 = prompt_rear(car_type, model_name, paint, backdrop)
-    p3 = prompt_interior(car_type, model_name, paint)
+    # Prompts cohérents
+    p1 = prompt_front(car_type, model_name, paint, backdrop, design_token)
+    p2 = prompt_rear(car_type, model_name, paint, backdrop, design_token)
+    p3 = prompt_interior(car_type, model_name, paint, backdrop, design_token)
 
+    # Génération images
     b64_1 = gen_image_b64(p1)
     save_b64(img01, b64_1)
     b64_2 = gen_image_b64(p2)
