@@ -32,7 +32,7 @@ TIMEZONE = "Europe/Paris"
 
 # OpenAI
 OPENAI_MODEL_IMAGE = "gpt-image-1"
-OPENAI_IMAGE_SIZE = "2048x1365"  # plus défini, format 3:2
+OPENAI_IMAGE_SIZE = "1536x1024"  # plus défini, format 3:2
 OPENAI_IMAGE_FORMAT = "b64_json"
 IMAGE_EXT = ".png"
 
