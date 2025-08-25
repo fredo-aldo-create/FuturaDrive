@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-Auto Concept Car Generator (GitHub Actions friendly)
+Auto Concept Car Generator (GitHub Actions friendly) — FUTURE MODE
 
 - Jour pair => supercar ; Jour impair => berline de luxe (date Europe/Paris)
+- Mode FUTURE (export FUTURE_MODE=1) : design 2045+, specs poussées, prompts SF
 - Génère 3 images via OpenAI Images API:
   01: avant 3/4 ; 02: arrière 3/4 ; 03: intérieur (cockpit / côté conducteur)
-- Nomme les images: AAAA-MM-JJ-<slug>-01.jpg (02/03 idem) -> /images
+- Nomme les images: AAAA-MM-JJ-<slug>-01.png (02/03 idem) -> /images
 - Crée l'article HTML: AAAA-MM-JJ-<slug>.html -> /articles (template intégré + lightbox)
 - Met à jour /index.html : insère une carte entre <!-- FEED:start --> et <!-- FEED:end -->
   avec image 01, lien article, titre et méta (date, tag)
@@ -29,9 +30,12 @@ TIMEZONE = "Europe/Paris"
 
 # OpenAI
 OPENAI_MODEL_IMAGE = "gpt-image-1"
-OPENAI_IMAGE_SIZE = "1536x1024"
+OPENAI_IMAGE_SIZE = "2048x1365"  # plus défini, format 3:2
 OPENAI_IMAGE_FORMAT = "b64_json"
 IMAGE_EXT = ".png"
+
+# ----- Mode FUTURE -----
+FUTURE_MODE = os.getenv("FUTURE_MODE", "0") == "1"  # export FUTURE_MODE=1 pour activer
 
 # ----- Timezone -----
 try:
@@ -60,9 +64,9 @@ def save_b64(path: Path, b64: str):
 
 # ----- Naming & specs -----
 SYLLABLES = [
-    "Aely","Orion","Veyra","Celest","Hydra","Aeon","Kaly","Nyra",
-    "Solin","Vestra","Elios","Ophir","Zyra","Lumen","Icar","Nexa",
-    "Arion","Eidos","Nova","Kaelis","Astra","Lyra","Seraph","Valk"
+    "Qy","Xeno","Aeon","Nexo","Veyra","Celest","Hydra","Zyra",
+    "Lyri","Astra","Orix","Nyra","Kael","Seraph","Volt","Icar",
+    "Arion","Nova","Lumen","Valk","Kyra","Orion","Nexa","Helio"
 ]
 
 def invent_name(car_type: str) -> str:
@@ -72,63 +76,85 @@ def invent_name(car_type: str) -> str:
 
 def random_specs(car_type: str) -> dict:
     if car_type == "sport":
-        zero100 = round(random.uniform(2.6, 3.2), 1)
-        vmax = random.randint(310, 340)
-        power_hp = random.randint(750, 900)
+        zero100 = round(random.uniform(1.8, 2.4), 2) if FUTURE_MODE else round(random.uniform(2.6, 3.2), 1)
+        vmax = random.randint(360, 420) if FUTURE_MODE else random.randint(310, 340)
+        power_hp = random.randint(1100, 1600) if FUTURE_MODE else random.randint(750, 900)
         seats = 2
-        tag = "Supercar"
+        tag = "Hypercar" if FUTURE_MODE else "Supercar"
     else:
-        zero100 = round(random.uniform(3.8, 4.8), 1)
-        vmax = random.randint(260, 300)
-        power_hp = random.randint(500, 680)
+        zero100 = round(random.uniform(2.8, 3.6), 2) if FUTURE_MODE else round(random.uniform(3.8, 4.8), 1)
+        vmax = random.randint(310, 360) if FUTURE_MODE else random.randint(260, 300)
+        power_hp = random.randint(800, 1100) if FUTURE_MODE else random.randint(500, 680)
         seats = 4
-        tag = "Berline"
-    autonomy = random.randint(700, 950)
+        tag = "Berline néo-luxe" if FUTURE_MODE else "Berline"
+
+    autonomy = random.randint(950, 1200) if FUTURE_MODE else random.randint(700, 950)
     dims = {
-        "length": round(random.uniform(4.75, 5.25), 2),
-        "width": round(random.uniform(1.90, 2.02), 2),
-        "height": round(random.uniform(1.23, 1.47), 2),
-        "wheelbase": round(random.uniform(2.75, 3.05), 2),
+        "length": round(random.uniform(4.70, 5.15), 2),
+        "width": round(random.uniform(1.92, 2.06), 2),
+        "height": round(random.uniform(1.17, 1.40), 2),
+        "wheelbase": round(random.uniform(2.85, 3.15), 2),
     }
     return dict(zero100=zero100, vmax=vmax, power_hp=power_hp, autonomy=autonomy,
                 seats=seats, tag=tag, dims=dims)
 
-# ----- Prompts images (anti-lookalike) -----
+# ----- Prompts images (anti-lookalike & futur) -----
+def unique_future_hint():
+    hints = [
+        "subtle ionized air glow near edges",
+        "rain-beaded body with neon reflections",
+        "dusty moon surface particles subtly reflecting",
+        "thin mist with volumetric shafts of light"
+    ]
+    return random.choice(hints)
+
 def base_style(unique_hint: str) -> str:
+    era = "year 2045 prototype at an international auto design reveal" if FUTURE_MODE else "high-end concept reveal"
+    safety = ("no logos, no text, no license plate, no brand grille, no watermarks, "
+              "not resembling existing brands")
+    optics = "cinematic optics, crisp global illumination, microdetail, 85mm lens, shallow depth of field"
+    materials = ("morphing aero surfaces, seamless panels, continuous OLED light blade, "
+                 "hubless wheels, active aero vents, glass canopy, illuminated edges") if FUTURE_MODE else \
+                ("clean aero surfaces, seamless panels, refined light signatures, "
+                 "advanced aero, glass canopy, premium materials")
+    extra = (" " + unique_future_hint()) if FUTURE_MODE else ""
     return (
-        "Ultra-realistic photo of a high-end concept car with a UNIQUE visual identity that DOES NOT resemble existing brands "
-        "(no badges, no brand-identifiable grille), futuristic clean surfacing, aerodynamic sculpture, premium materials, "
-        "sharp details, photographic rendering, subtle reflections. " + unique_hint
+        f"Ultra-realistic photograph of a radical concept car, {era}; {safety}; "
+        f"clean minimal surfacing, aero-sculpted silhouette; {materials}; {optics}. "
+        + unique_hint + extra
     )
 
-PROPULSIONS = [
-    {"tag": "Hydrogène", "desc": "pile à combustible hydrogène + batterie tampon haute puissance", "emoji": "⚡"},
-    {"tag": "Électrique", "desc": "100% électrique avec batterie solide de nouvelle génération", "emoji": "🔋"},
-    {"tag": "Hybride futuriste", "desc": "hybride rechargeable à microturbine génératrice", "emoji": "🌍"}
+FUTURE_FEATURES_EXT = [
+    "biomorphic shoulder lines with flowing parametric textures",
+    "edge-lit DRL signature integrated into body perimeter",
+    "flush smart air curtains with micro-perforations",
+    "levitating look hubless turbofan wheels",
+    "steer-by-wire with ultra-thin yoke",
+    "rear aero tunnel with active shutter blades",
+    "full-glass canopy with electrochromic gradients"
 ]
 
-propulsion = random.choice(PROPULSIONS)
-
+PROPULSIONS = [
+    {"tag": "Hydrogène solide", "desc": "pile à combustible + réservoir cryo-compact, double e-axle", "emoji": "🧊"},
+    {"tag": "Électrique solide", "desc": "pack batterie solide 200 kWh + supercondensateurs graphène", "emoji": "🔋"},
+    {"tag": "Hybride microturbine", "desc": "microturbine génératrice + e-quad moteurs in-wheel", "emoji": "🌀"},
+    {"tag": "Solaire actif", "desc": "peau photovoltaïque + buffer supercaps + AWD vectorisée", "emoji": "☀️"},
+]
 
 # ----- Couleurs & environnements -----
 CAR_COLORS = [
-    "metallic red", "pearl white", "deep midnight blue",
-    "emerald green metallic", "champagne gold", "graphite black matte",
-    "copper orange", "satin purple", "turquoise cyan",
-    "silver-blue metallic"
+    "liquid metal silver", "prismatic chameleon", "structural morpho blue",
+    "nano-ceramic white", "graphite black mirror", "plasma violet satin",
+    "copper aurora", "holographic teal"
 ]
 
-
 ENVIRONMENTS = [
-    "modern minimal urban setting in soft daylight",
-    "futuristic city skyline at dusk",
-    "coastal road at golden hour",
-    "mountain pass with snowy peaks in background",
-    "desert highway under bright sunlight",
-    "forest road with misty atmosphere",
-    "luxury villa driveway in sunny weather",
-    "industrial port with containers and cranes",
-    "night cityscape with neon reflections" 
+    "orbital hangar with soft volumetric light",
+    "lunar base apron under Earthrise",
+    "neon megacity skybridge at night with mist",
+    "desert salt flat with heat shimmer",
+    "high-altitude alpine lab with glass walls",
+    "clean room pavilion with diffuse lighting"
 ]
 
 def random_color():
@@ -138,34 +164,43 @@ def random_env():
     return random.choice(ENVIRONMENTS)
 
 def prompt_front(kind: str, name: str, paint: str, backdrop: str) -> str:
-    body = "low-slung hypercar proportions" if kind == "sport" else "long luxury sedan proportions"
+    body = "low, wide hypercar stance with cab-forward proportions" if kind == "sport" else "long fastback luxury sedan with one-bow profile"
+    hint = random.choice(FUTURE_FEATURES_EXT) if FUTURE_MODE else "distinctive LED signature; unique front graphics"
     return (
-        base_style("distinctive LED signature; unique front graphics.")
-        + f"\nShot: dynamic front three-quarter view; Body: {body}; "
+        base_style(f"distinctive LED DRL geometry; {hint}.")
+        + f"\nShot: dynamic front three-quarter; Body: {body}; "
           f"Backdrop: {backdrop}; "
-          f"Paint: {paint}; Wheels: turbine-inspired; "
-          f"Vehicle name: {name}."
+          f"Paint: {paint}; Wheels: {'hubless aero turbofan' if FUTURE_MODE else 'turbine-inspired'}; "
+          f"Vehicle codename: {name}."
     )
 
 def prompt_rear(kind: str, name: str, paint: str, backdrop: str) -> str:
-    tail = "sculpted diffuser with continuous light bar" if kind == "sport" else "elegant clean trunk line with light bar"
+    tail = "floating diffuser with continuous light blade and kinetic aero fins" if kind == "sport" else "clean boat-tail with seamless light ribbon and deployable aero"
     return (
-        base_style("bespoke taillight contour; no logos.")
-        + f"\nShot: low-angle rear three-quarter view; Tail: {tail}; "
+        base_style("bespoke taillight blade integrated flush into the body; kinetic aero.")
+        + f"\nShot: low-angle rear three-quarter; Tail: {tail}; "
           f"Backdrop: {backdrop}; "
           f"Paint: {paint}; "
-          f"Vehicle name: {name}."
+          f"Vehicle codename: {name}."
     )
 
 def prompt_interior(kind: str, name: str, paint: str) -> str:
     mode = random.choice([
         "cockpit close-up from driver's seat",
+        "interior seen from outside through open canopy, left side"
+    ]) if FUTURE_MODE else random.choice([
+        "cockpit close-up from driver's seat",
         "interior seen from outside through the open driver door, left side"
     ])
     return (
-        f"High-end luxury interior with subtle accents matching the exterior paint ({paint}), "
-        "vegan leather, basalt-fiber inlays, brushed metal, wide AR HUD, panoramic curved display, "
-        f"{mode}, natural daylight, photo-real, no logos.\nVehicle name: {name}."
+        ("Zero-clutter interior with electrochromic glass canopy, vegan performance textiles, "
+         "basalt-fiber inlays, floating center spine, full-width AR HUD with spatial UI, "
+         "haptic yoke, seamless OLED instrument ribbon; ")
+        if FUTURE_MODE else
+        ("High-end luxury interior with subtle accents matching the exterior paint, "
+         "vegan leather, basalt-fiber inlays, brushed metal, wide AR HUD, panoramic curved display, ")
+    ) + (
+        f"{mode}, natural daylight, photo-real, {paint} accents, no logos.\nVehicle codename: {name}."
     )
 
 # ----- OpenAI images -----
@@ -180,16 +215,14 @@ def openai_client():
 def gen_image_b64(prompt: str) -> str:
     from openai import OpenAI
     client = OpenAI()
-    print(f"[i] Image size = {OPENAI_IMAGE_SIZE}")   
+    print(f"[i] Image size = {OPENAI_IMAGE_SIZE}")
     res = client.images.generate(
-        model="gpt-image-1",
+        model=OPENAI_MODEL_IMAGE,
         prompt=prompt,
         size=OPENAI_IMAGE_SIZE,
         n=1,
     )
     return res.data[0].b64_json
-
-
 
 # ----- HTML template (intégré, lightbox incluse) -----
 DEFAULT_TEMPLATE = """<!DOCTYPE html>
@@ -311,6 +344,15 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
               <li>Mises à jour OTA</li>
             </ul>
           </div>
+          <div class="card">
+            <h3>Techs 2045+</h3>
+            <ul class="list">
+              <li>Carrosserie à aérodynamique morphable</li>
+              <li>Roues sans moyeu à pales turbofan</li>
+              <li>Peau lumineuse OLED continue</li>
+              <li>Canopée électrochromique à gradation</li>
+            </ul>
+          </div>
         </div>
 
         <h3 style="margin-top:18px">Galerie</h3>
@@ -376,7 +418,6 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
 </html>
 """
 
-
 def render(tpl: str, ctx: dict) -> str:
     out = tpl
     for k, v in ctx.items():
@@ -407,18 +448,16 @@ def make_card_block(article_rel: str, img_rel: str, title: str, meta_tag: str, d
         </div>
       </article>
     """.rstrip()
+
 def insert_card_into_index(index_path: Path, card_html: str):
     html = index_path.read_text(encoding="utf-8")
     start = html.find("<!-- FEED:start -->")
     end = html.find("<!-- FEED:end -->")
     if start == -1 or end == -1 or end < start:
         raise RuntimeError("Marqueurs FEED introuvables dans index.html")
-    
-    # on met la nouvelle carte juste après <!-- FEED:start -->
     insertion_point = start + len("<!-- FEED:start -->")
     new_html = html[:insertion_point] + "\n      " + card_html + html[insertion_point:]
     index_path.write_text(new_html, encoding="utf-8")
-
 
 # ----- Main -----
 def main():
@@ -430,6 +469,8 @@ def main():
     day = now.day
     car_type = "sport" if day % 2 == 0 else "berline"
     kind_fr = "supercar" if car_type == "sport" else "berline de luxe"
+    if FUTURE_MODE:
+        kind_fr += " (proto 2045+)"
 
     # Nom + fichiers
     model_name = invent_name(car_type)
@@ -446,7 +487,7 @@ def main():
     # Prompts & images (une seule couleur + un seul décor pour les 3 vues)
     paint = random.choice(CAR_COLORS)
     backdrop = random.choice(ENVIRONMENTS)
-    
+
     p1 = prompt_front(car_type, model_name, paint, backdrop)
     p2 = prompt_rear(car_type, model_name, paint, backdrop)
     p3 = prompt_interior(car_type, model_name, paint)
@@ -484,14 +525,14 @@ def main():
 
     # Carte pour index.html
     card = make_card_block(
-    article_rel=f"/articles/{article.name}",
-    img_rel=f"/images/{img01.name}",
-    title=f"{model_name} — Concept Car",
-    meta_tag=specs["tag"],
-    dt=now,
-    prop_tag=propulsion["tag"],
-    prop_emoji=propulsion["emoji"]
-)
+        article_rel=f"/articles/{article.name}",
+        img_rel=f"/images/{img01.name}",
+        title=f"{model_name} — Concept Car",
+        meta_tag=specs["tag"],
+        dt=now,
+        prop_tag=propulsion["tag"],
+        prop_emoji=propulsion["emoji"]
+    )
     if INDEX_FILE.exists():
         insert_card_into_index(INDEX_FILE, card)
     else:
