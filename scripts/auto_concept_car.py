@@ -32,7 +32,7 @@ TIMEZONE = "Europe/Paris"
 
 # OpenAI
 OPENAI_MODEL_IMAGE = "gpt-image-1"
-OPENAI_IMAGE_SIZE = "1536x1024"  # plus défini, format 3:2
+OPENAI_IMAGE_SIZE = "1536x1024"  # tu peux passer à "2048x1365" si tu veux plus de détail
 OPENAI_IMAGE_FORMAT = "b64_json"
 IMAGE_EXT = ".png"
 
@@ -114,44 +114,30 @@ def coherence_clause(token: str, name: str, paint: str, backdrop: str) -> str:
         "ONLY the camera viewpoint changes. No logos, no text."
     )
 
-def prompt_front(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
-    body = "low, wide hypercar stance with cab-forward proportions" if kind == "sport" else "long fastback luxury sedan with one-bow profile"
-    hint = random.choice(FUTURE_FEATURES_EXT) if FUTURE_MODE else "distinctive LED signature; unique front graphics"
-    return (
-        base_style(f"distinctive LED DRL geometry; {hint}.")
-        + "\n" + coherence_clause(token, name, paint, backdrop)
-        + f"\nVIEW: FRONT three-quarter view. Body: {body}; Paint: {paint}; "
-          f"Backdrop: {backdrop}; Wheels: {'hubless aero turbofan' if FUTURE_MODE else 'turbine-inspired'}; "
-          f"Vehicle codename: {name}."
-    )
+# ----- Prompts images (anti-lookalike & futur) -----
+def unique_future_hint():
+    hints = [
+        "subtle ionized air glow near edges",
+        "rain-beaded body with neon reflections",
+        "dusty moon surface particles subtly reflecting",
+        "thin mist with volumetric shafts of light"
+    ]
+    return random.choice(hints)
 
-def prompt_rear(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
-    tail = "floating diffuser with continuous light blade and kinetic aero fins" if kind == "sport" else "clean boat-tail with seamless light ribbon and deployable aero"
+def base_style(unique_hint: str) -> str:
+    era = "year 2045 prototype at an international auto design reveal" if FUTURE_MODE else "high-end concept reveal"
+    safety = ("no logos, no text, no license plate, no brand grille, no watermarks, "
+              "not resembling existing brands")
+    optics = "cinematic optics, crisp global illumination, microdetail, 85mm lens, shallow depth of field"
+    materials = ("morphing aero surfaces, seamless panels, continuous OLED light blade, "
+                 "hubless wheels, active aero vents, glass canopy, illuminated edges") if FUTURE_MODE else \
+                ("clean aero surfaces, seamless panels, refined light signatures, "
+                 "advanced aero, glass canopy, premium materials")
+    extra = (" " + unique_future_hint()) if FUTURE_MODE else ""
     return (
-        base_style("rear lighting blade integrated flush into the body; kinetic aero.")
-        + "\n" + coherence_clause(token, name, paint, backdrop)
-        + f"\nVIEW: REAR three-quarter view of the SAME car as in the front view. "
-          f"Tail: {tail}; Paint: {paint}; Backdrop: {backdrop}; Vehicle codename: {name}."
-    )
-
-def prompt_interior(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
-    mode = random.choice([
-        "cockpit close-up from driver's seat",
-        "interior seen from outside through open canopy, left side"
-    ]) if FUTURE_MODE else "cockpit close-up from driver's seat"
-    interior_core = (
-        "Zero-clutter interior with electrochromic canopy, vegan textiles, "
-        "basalt-fiber inlays, floating center spine, AR HUD, OLED ribbon; "
-    ) if FUTURE_MODE else (
-        "High-end luxury interior with subtle accents matching the exterior paint, "
-        "vegan leather, basalt-fiber inlays, panoramic curved display; "
-    )
-    return (
-        interior_core
-        + coherence_clause(token, name, paint, backdrop)
-        + f"\nVIEW: INTERIOR of the SAME car as exterior views. "
-          f"Accents match exterior paint ({paint}). {mode}, natural daylight, photo-real, no logos. "
-          f"Vehicle codename: {name}."
+        f"Ultra-realistic photograph of a radical concept car, {era}; {safety}; "
+        f"clean minimal surfacing, aero-sculpted silhouette; {materials}; {optics}. "
+        + unique_hint + extra
     )
 
 FUTURE_FEATURES_EXT = [
@@ -199,41 +185,38 @@ def prompt_front(kind: str, name: str, paint: str, backdrop: str, token: str) ->
     return (
         base_style(f"distinctive LED DRL geometry; {hint}.")
         + "\n" + coherence_clause(token, name, paint, backdrop)
-        + f"\nShot: dynamic FRONT three-quarter view; Body: {body}; "
-          f"Backdrop: {backdrop}; Paint: {paint}; Wheels: {'hubless aero turbofan' if FUTURE_MODE else 'turbine-inspired'}; "
+        + f"\nVIEW: FRONT three-quarter view. Body: {body}; Paint: {paint}; "
+          f"Backdrop: {backdrop}; Wheels: {'hubless aero turbofan' if FUTURE_MODE else 'turbine-inspired'}; "
           f"Vehicle codename: {name}."
     )
 
 def prompt_rear(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
     tail = "floating diffuser with continuous light blade and kinetic aero fins" if kind == "sport" else "clean boat-tail with seamless light ribbon and deployable aero"
     return (
-        base_style("bespoke taillight blade integrated flush into the body; kinetic aero.")
+        base_style("rear lighting blade integrated flush into the body; kinetic aero.")
         + "\n" + coherence_clause(token, name, paint, backdrop)
-        + f"\nShot: low-angle REAR three-quarter view; Tail: {tail}; "
-          f"Backdrop: {backdrop}; Paint: {paint}; Vehicle codename: {name}."
+        + f"\nVIEW: REAR three-quarter view of the SAME car as in the front view. "
+          f"Tail: {tail}; Paint: {paint}; Backdrop: {backdrop}; Vehicle codename: {name}."
     )
 
 def prompt_interior(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
     mode = random.choice([
         "cockpit close-up from driver's seat",
         "interior seen from outside through open canopy, left side"
-    ]) if FUTURE_MODE else random.choice([
-        "cockpit close-up from driver's seat",
-        "interior seen from outside through the open driver door, left side"
-    ])
+    ]) if FUTURE_MODE else "cockpit close-up from driver's seat"
     interior_core = (
-        "Zero-clutter interior with electrochromic glass canopy, vegan performance textiles, "
-        "basalt-fiber inlays, floating center spine, full-width AR HUD with spatial UI, "
-        "haptic yoke, seamless OLED instrument ribbon; "
+        "Zero-clutter interior with electrochromic canopy, vegan textiles, "
+        "basalt-fiber inlays, floating center spine, AR HUD, OLED ribbon; "
     ) if FUTURE_MODE else (
         "High-end luxury interior with subtle accents matching the exterior paint, "
-        "vegan leather, basalt-fiber inlays, brushed metal, wide AR HUD, panoramic curved display, "
+        "vegan leather, basalt-fiber inlays, panoramic curved display; "
     )
     return (
         interior_core
         + coherence_clause(token, name, paint, backdrop)
-        + f"\nKeep interior color accents matched to exterior paint ({paint}); same lighting mood as exterior. "
-          f"{mode}, natural daylight, photo-real, no logos.\nVehicle codename: {name}."
+        + f"\nVIEW: INTERIOR of the SAME car as exterior views. "
+          f"Accents match exterior paint ({paint}). {mode}, natural daylight, photo-real, no logos. "
+          f"Vehicle codename: {name}."
     )
 
 # ----- OpenAI images -----
@@ -333,7 +316,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
         <h2>Aperçu</h2>
         <p><strong>{{ MODEL }}</strong> est une {{ KIND_FR }} à motorisation <strong>{{ PROP_TAG }}</strong>. Elle associe une architecture <em>{{ PROP_DESC }}</em> pour offrir des performances de premier plan.</p>
 
-        <h3 style="margin-top:18px">Performances clés</h3>
+        <h3 style="margin-top:16px">Performances clés</h3>
         <div class="specs">
           <div class="spec"><span class="muted">0–100 km/h</span><strong>{{ ZERO100 }} s</strong></div>
           <div class="spec"><span class="muted">Vitesse max</span><strong>{{ VMAX }} km/h</strong></div>
@@ -341,7 +324,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
           <div class="spec"><span class="muted">Autonomie (est.)</span><strong>{{ AUTONOMY }} km</strong></div>
         </div>
 
-        <div class="grid" style="margin-top:16px)">
+        <div class="grid" style="margin-top:16px">
           <div class="card">
             <h3>Chaîne de traction</h3>
             <ul class="list">
@@ -388,7 +371,7 @@ DEFAULT_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
-        <h3 style="margin-top:18px">Galerie</h3>
+        <h3 style="margin-top:16px">Galerie</h3>
         <div class="gallery">
           <img src="{{ IMG02 }}" alt="{{ MODEL }} — vue arrière" class="zoomable" />
           <img src="{{ IMG03 }}" alt="{{ MODEL }} — intérieur" class="zoomable" />
@@ -517,8 +500,8 @@ def main():
     # Props communes à TOUTES les images (cohérence)
     specs = random_specs(car_type)
     propulsion = random.choice(PROPULSIONS)
-    paint = random.choice(CAR_COLORS)
-    backdrop = random.choice(ENVIRONMENTS)
+    paint = random_color()
+    backdrop = random_env()
     design_token = make_design_token()
 
     # Prompts cohérents
