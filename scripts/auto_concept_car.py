@@ -105,41 +105,53 @@ def make_design_token() -> str:
     return f"Design VX-{uuid.uuid4().hex[:6].upper()}"
 
 def coherence_clause(token: str, name: str, paint: str, backdrop: str) -> str:
-    """
-    Clause injectée dans chaque prompt pour la cohérence stricte.
-    """
     return (
         f"This is the exact same unique vehicle identified as '{token}' (codename {name}). "
-        f"Keep IDENTICAL proportions, panel lines, DRL/taillight signatures, wheel design, "
-        f"and exterior paint ({paint}). Use the EXACT SAME environment: {backdrop}. "
-        "Maintain the SAME time of day, camera colorimetry and lighting direction. "
-        "Do NOT alter body surfacing, trim details or wheel geometry. No logos, no text."
+        f"KEEP IDENTICAL body shape, panel lines, DRL/taillight signatures, wheels, "
+        f"and exterior paint ({paint}). "
+        f"KEEP SAME environment: {backdrop}. "
+        "Maintain SAME time of day, color grading and lighting. "
+        "ONLY the camera viewpoint changes. No logos, no text."
     )
 
-# ----- Prompts images (anti-lookalike & futur) -----
-def unique_future_hint():
-    hints = [
-        "subtle ionized air glow near edges",
-        "rain-beaded body with neon reflections",
-        "dusty moon surface particles subtly reflecting",
-        "thin mist with volumetric shafts of light"
-    ]
-    return random.choice(hints)
-
-def base_style(unique_hint: str) -> str:
-    era = "year 2045 prototype at an international auto design reveal" if FUTURE_MODE else "high-end concept reveal"
-    safety = ("no logos, no text, no license plate, no brand grille, no watermarks, "
-              "not resembling existing brands")
-    optics = "cinematic optics, crisp global illumination, microdetail, 85mm lens, shallow depth of field"
-    materials = ("morphing aero surfaces, seamless panels, continuous OLED light blade, "
-                 "hubless wheels, active aero vents, glass canopy, illuminated edges") if FUTURE_MODE else \
-                ("clean aero surfaces, seamless panels, refined light signatures, "
-                 "advanced aero, glass canopy, premium materials")
-    extra = (" " + unique_future_hint()) if FUTURE_MODE else ""
+def prompt_front(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
+    body = "low, wide hypercar stance with cab-forward proportions" if kind == "sport" else "long fastback luxury sedan with one-bow profile"
+    hint = random.choice(FUTURE_FEATURES_EXT) if FUTURE_MODE else "distinctive LED signature; unique front graphics"
     return (
-        f"Ultra-realistic photograph of a radical concept car, {era}; {safety}; "
-        f"clean minimal surfacing, aero-sculpted silhouette; {materials}; {optics}. "
-        + unique_hint + extra
+        base_style(f"distinctive LED DRL geometry; {hint}.")
+        + "\n" + coherence_clause(token, name, paint, backdrop)
+        + f"\nVIEW: FRONT three-quarter view. Body: {body}; Paint: {paint}; "
+          f"Backdrop: {backdrop}; Wheels: {'hubless aero turbofan' if FUTURE_MODE else 'turbine-inspired'}; "
+          f"Vehicle codename: {name}."
+    )
+
+def prompt_rear(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
+    tail = "floating diffuser with continuous light blade and kinetic aero fins" if kind == "sport" else "clean boat-tail with seamless light ribbon and deployable aero"
+    return (
+        base_style("rear lighting blade integrated flush into the body; kinetic aero.")
+        + "\n" + coherence_clause(token, name, paint, backdrop)
+        + f"\nVIEW: REAR three-quarter view of the SAME car as in the front view. "
+          f"Tail: {tail}; Paint: {paint}; Backdrop: {backdrop}; Vehicle codename: {name}."
+    )
+
+def prompt_interior(kind: str, name: str, paint: str, backdrop: str, token: str) -> str:
+    mode = random.choice([
+        "cockpit close-up from driver's seat",
+        "interior seen from outside through open canopy, left side"
+    ]) if FUTURE_MODE else "cockpit close-up from driver's seat"
+    interior_core = (
+        "Zero-clutter interior with electrochromic canopy, vegan textiles, "
+        "basalt-fiber inlays, floating center spine, AR HUD, OLED ribbon; "
+    ) if FUTURE_MODE else (
+        "High-end luxury interior with subtle accents matching the exterior paint, "
+        "vegan leather, basalt-fiber inlays, panoramic curved display; "
+    )
+    return (
+        interior_core
+        + coherence_clause(token, name, paint, backdrop)
+        + f"\nVIEW: INTERIOR of the SAME car as exterior views. "
+          f"Accents match exterior paint ({paint}). {mode}, natural daylight, photo-real, no logos. "
+          f"Vehicle codename: {name}."
     )
 
 FUTURE_FEATURES_EXT = [
